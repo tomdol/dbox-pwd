@@ -11,7 +11,7 @@
     "url": "git+https://github.com/tdolbniak/dbox-pwd.git"
   },
   "keywords": ["password","hash","encryption","authentication","bcrypt","aes"],
-  "author": "Tomasz Dołbniak <tdolbniak@gmail.com> (https://github.com/tdolbniak)",
+  "author": "Tomasz Dołbniak <tdolbniak@users.noreply.github.com> (https://github.com/tdolbniak)",
   "license": "MIT",
   "homepage": "https://github.com/tdolbniak/dbox-pwd",
   "dependencies": {
