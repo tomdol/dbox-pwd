@@ -59,3 +59,29 @@ describe('validateEncryptionParams:', () => {
         });
     });
 });
+
+describe('validateDecryptionParams:', () => {
+    it('throws on empty input', () => {
+        expect(() =>
+            validators.validateDecryptionParams(validInput, '', validPassword, 'aes256')
+        ).toThrow();
+        expect(() =>
+            validators.validateDecryptionParams(validInput, null, validPassword, 'aes256')
+        ).toThrow();
+        expect(() =>
+            validators.validateDecryptionParams(validInput, undefined, validPassword, 'aes256')
+        ).toThrow();
+    });
+
+    it('throws on non-string input', () => {
+        expect(() =>
+            validators.validateDecryptionParams(validInput, 123, validPassword, 'aes256')
+        ).toThrow();
+    });
+
+    it('passes for accepted values', () => {
+        expect(() =>
+            validators.validateDecryptionParams(validInput, 'some string', validPassword, 'aes256')
+        ).not.toThrow();
+    });
+});

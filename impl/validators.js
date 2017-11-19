@@ -2,31 +2,30 @@
 
 const crypto = require('crypto');
 
+const isNonEmptyString = (value, paramName) => {
+    if (typeof value !== 'string') {
+        throw new Error(`The ${paramName} must be a string`);
+    }
+
+    if (!value || value.length === 0) {
+        throw new Error(`The ${paramName} must not be empty`);
+    }
+};
+
 module.exports = {
     validateEncryptionParams: (input, password, cipherType) => {
-        if (typeof input !== 'string') {
-            throw new Error('The input must be a string');
-        }
+        isNonEmptyString(input, 'input data');
+        isNonEmptyString(password, 'password');
+        isNonEmptyString(cipherType, 'cipher type');
 
-        if (!input || input.length === 0) {
-            throw new Error('The input data must not be empty');
-        }
-
-        if (typeof password !== 'string') {
-            throw new Error('The password must be a string');
-        }
-
-        if (!password || password.length === 0) {
-            throw new Error('The password must not be empty');
-        }
-
-        if (cipherType && typeof cipherType !== 'string') {
-            throw new Error('cipherType must be a string');
-        }
-
-        const availableCiphers = crypto.getCiphers();
-        if (availableCiphers.indexOf(cipherType) === -1) {
+        if (crypto.getCiphers().indexOf(cipherType) === -1) {
             throw new Error('The provided cipherType is not available in your version of node.js');
         }
+    },
+
+    validateDecryptionParams: (input, encryptedData, password, cipherType) => {
+        module.exports.validateEncryptionParams(input, password, cipherType);
+
+        isNonEmptyString(encryptedData, 'encrypted data');
     }
 }

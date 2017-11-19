@@ -2,6 +2,7 @@
 
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const validators = require('impl/validators');
 
 const DEFAULT_CIPHER = 'aes256';
 
@@ -18,13 +19,8 @@ module.exports = {
     encrypt: (input, password, bcryptRounds, cipherType) => {
         return new Promise(function(resolve, reject) {
             try {
-                if(typeof password !== 'string' || (cipherType && typeof cipherType !== 'string')) {
-                    throw new Error('Both password and cipherType must be strings');
-                }
-
-                if(!input || input.length === 0) {
-                    throw new Error('The input data cannot be empty');
-                }
+                // throws if validation fails, does nothing on success
+                validators.validateEncryptionParams(input, password, cipherType);
 
                 bcrypt.genSalt(bcryptRounds, (err, salt) => {
                     if(err) {
@@ -61,13 +57,8 @@ module.exports = {
     compare: function(input, encryptedData, password, cipherType) {
         return new Promise(function(resolve, reject) {
             try {
-                if(typeof encryptedData !== 'string' || typeof password !== 'string' || (cipherType && typeof cipherType !== 'string')) {
-                    throw new Error('encryptedData, password and cipherType must be strings');
-                }
-
-                if(!input || input.length === 0 || !encryptedData || encryptedData.length === 0) {
-                    throw new Error('No input data');
-                }
+                // throws if validation fails, does nothing on success
+                validators.validateDecryptionParams(input, encryptedData, password, cipherType);
 
                 const decipher = crypto.createDecipher(cipherType || DEFAULT_CIPHER, password);
                 const dec1 = decipher.update(encryptedData, 'hex', 'utf8');
