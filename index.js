@@ -15,7 +15,7 @@ module.exports = {
      * @param  {[string]} cipherType   One of cipher types available in nodejs's crypto module. By default aes256 is used. Call crypto.getCiphers() to check available ciphers.
      * @return {[Promise]}             On success the returned promise resolves with the hashed and encrypted input.
      */
-    encrypt: function(input, password, bcryptRounds, cipherType) {
+    encrypt: (input, password, bcryptRounds, cipherType) => {
         return new Promise(function(resolve, reject) {
             try {
                 if(typeof password !== 'string' || (cipherType && typeof cipherType !== 'string')) {
@@ -26,22 +26,21 @@ module.exports = {
                     throw new Error('The input data cannot be empty');
                 }
 
-                const salt = null;
-                try {
-                    salt = await bcrypt.genSalt(bcryptRounds);
-                } catch(saltGenerationError) {
-                    throw new Error('Could not generate bcrypt salt. ' + saltGenerationError.toString());
-                }
-
-                bcrypt.hash(input, salt, function(bcerror, hashedData) {
-                    if(bcerror) {
-                        throw bcerror;
+                bcrypt.genSalt(bcryptRounds, (err, salt) => {
+                    if(err) {
+                        throw new Error('Could not generate bcrypt salt. ' + saltGenerationError.toString());
                     } else {
-                        const cipher = crypto.createCipher(cipherType || DEFAULT_CIPHER, password);
-                        const enc1 = cipher.update(hashedData, 'utf8', 'hex');
-                        const enc2 = cipher.final('hex');
+                        bcrypt.hash(input, salt, function(bcerror, hashedData) {
+                            if(bcerror) {
+                                throw bcerror;
+                            } else {
+                                const cipher = crypto.createCipher(cipherType || DEFAULT_CIPHER, password);
+                                const enc1 = cipher.update(hashedData, 'utf8', 'hex');
+                                const enc2 = cipher.final('hex');
 
-                        resolve(enc1 + enc2);
+                                resolve(enc1 + enc2);
+                            }
+                        });
                     }
                 });
             } catch(err) {

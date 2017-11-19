@@ -8,13 +8,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tdolbniak/dbox-pwd.git"
+    "url": "git+https://github.com/tomdol/dbox-pwd.git"
   },
   "keywords": ["password","hash","encryption","authentication","bcrypt","aes"],
-  "author": "Tomasz Dołbniak <tdolbniak@users.noreply.github.com> (https://github.com/tdolbniak)",
+  "author": "tomdol <tdolbniak+npmjs@gmail.com> (https://github.com/tomdol)",
   "license": "MIT",
-  "homepage": "https://github.com/tdolbniak/dbox-pwd",
+  "homepage": "https://github.com/tomdol/dbox-pwd",
   "dependencies": {
-    "bcrypt": "~0.x.x"
+    "bcrypt": "^1.0.3"
   }
 }
