@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const validators = require('impl/validators');
+const hasher = require('impl/hasher');
 
 const DEFAULT_CIPHER = 'aes256';
 
@@ -22,23 +23,15 @@ module.exports = {
                 // throws if validation fails, does nothing on success
                 validators.validateEncryptionParams(input, password, cipherType);
 
-                bcrypt.genSalt(bcryptRounds, (err, salt) => {
-                    if(err) {
-                        throw new Error('Could not generate bcrypt salt. ' + saltGenerationError.toString());
-                    } else {
-                        bcrypt.hash(input, salt, function(bcerror, hashedData) {
-                            if(bcerror) {
-                                throw bcerror;
-                            } else {
-                                const cipher = crypto.createCipher(cipherType || DEFAULT_CIPHER, password);
-                                const enc1 = cipher.update(hashedData, 'utf8', 'hex');
-                                const enc2 = cipher.final('hex');
+                hasher.createBcryptHash(input, bcryptRounds)
+                    .then(hash => {
+                        const cipher = crypto.createCipher(cipherType || DEFAULT_CIPHER, password);
+                        const enc1 = cipher.update(hash, 'utf8', 'hex');
+                        const enc2 = cipher.final('hex');
 
-                                resolve(enc1 + enc2);
-                            }
-                        });
-                    }
-                });
+                        resolve(enc1 + enc2);
+                    })
+                    .catch(reject);
             } catch(err) {
                 reject(err);
             }
@@ -54,7 +47,7 @@ module.exports = {
      * @param  {[string]} cipherType    Cipher used to decrypt the encryptedData. It needs to match the ciperType that was used to encrypt data.
      * @return {[Promise]}              Promise object which, on success, is resolved with a boolean value indicating that the input and encryptedData match(or not).
      */
-    compare: function(input, encryptedData, password, cipherType) {
+    compare: (input, encryptedData, password, cipherType) => {
         return new Promise(function(resolve, reject) {
             try {
                 // throws if validation fails, does nothing on success
