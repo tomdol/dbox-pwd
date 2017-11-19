@@ -4,17 +4,28 @@
   "description": "Dropbox-like password hasher",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test-watch": "jest --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tomdol/dbox-pwd.git"
   },
-  "keywords": ["password","hash","encryption","authentication","bcrypt","aes"],
+  "keywords": [
+    "password",
+    "hash",
+    "encryption",
+    "authentication",
+    "bcrypt",
+    "aes"
+  ],
   "author": "tomdol <tdolbniak+npmjs@gmail.com> (https://github.com/tomdol)",
   "license": "MIT",
   "homepage": "https://github.com/tomdol/dbox-pwd",
   "dependencies": {
     "bcrypt": "^1.0.3"
+  },
+  "devDependencies": {
+    "jest": "^21.2.1"
   }
 }
