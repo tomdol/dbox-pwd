@@ -1,42 +1,92 @@
 'use strict';
 
 describe('createBcryptHash', () => {
-    jest.mock('bcrypt', () => {
-        return {
-            genSalt: (bcryptRounds, cb) => {
-                cb(null, {});
-            },
-            hash: (data, salt, cb) => {
-                cb(null, {});
+    describe('on success', () => {
+        const hasher = require('./hasher');
+        const bcrypt = require('bcrypt');
+
+        const fakeSalt = 'fake salt';
+        const fakeHash = 'fake hash';
+        const testInput = 'test input';
+        const testNumRounds = 12;
+
+        jest.mock('bcrypt', () => {
+            return {
+                genSalt: jest.fn(),
+                hash: jest.fn()
             }
-        }
+        });
+
+        bcrypt.genSalt.mockImplementation((rounds, cb) => {
+            cb(null, fakeSalt);
+        });
+
+        bcrypt.hash.mockImplementation((input, salt, cb) => {
+            cb(null, fakeHash);
+        });
+
+        it('resolves with a hash', () => {
+            expect.hasAssertions();
+
+            return expect(hasher.createBcryptHash(testInput, testNumRounds)).resolves.toEqual(fakeHash);
+        });
+
+        it('calls bcrypt.genSalt with given rounds number', () => {
+            hasher.createBcryptHash(testInput, testNumRounds);
+
+            expect(bcrypt.genSalt).toBeCalledWith(testNumRounds, expect.anything());
+        });
+
+        it('calls bcrypt.hash with given input and generated salt', () => {
+            hasher.createBcryptHash(testInput, testNumRounds);
+
+            return expect(bcrypt.hash).toBeCalledWith(testInput, fakeSalt, expect.anything());
+        });
     });
 
-    const hasher = require('./hasher');
-    const bcrypt = require('bcrypt');
+    describe('rejects', () => {
+        jest.resetModules();
 
-    const testInput = 'test input';
-    const testNumRounds = 12;
+        const hasher = require('./hasher');
+        const bcrypt = require('bcrypt');
 
-    it('resolves as an empty object', () => {
-        expect.hasAssertions();
+        jest.mock('bcrypt', () => {
+            return {
+                genSalt: jest.fn(),
+                hash: jest.fn()
+            }
+        });
 
-        return expect(hasher.createBcryptHash('aaa', 1)).resolves.toEqual({});
-    });
+        describe('when genSalt()', () => {
+            const genSaltError = 'gen-salt-error';
 
-    it('calls bcrypt.genSalt with given rounds number', () => {
-        const mockedGenSalt = jest.spyOn(bcrypt, 'genSalt');
+            bcrypt.genSalt = jest.fn().mockImplementationOnce((rounds, cb) => {
+                cb(genSaltError);
+            });
 
-        hasher.createBcryptHash(testInput, testNumRounds);
+            it('reports an error', () => {
+                expect.hasAssertions();
 
-        return expect(mockedGenSalt).toBeCalledWith(testNumRounds, expect.anything());
-    });
+                return expect(hasher.createBcryptHash('aaa', 1)).rejects.toContain(genSaltError);
+            });
+        });
 
-    it('calls bcrypt.hash with given input', () => {
-        const mockedHash = jest.spyOn(bcrypt, 'hash');
+        describe('when hash()', () => {
+            const hashError = 'bcrypt-hash-error';
 
-        hasher.createBcryptHash(testInput, testNumRounds);
+            bcrypt.genSalt.mockImplementationOnce((rounds, cb) => {
+                cb(null, 'fake-salt');
+            });
 
-        return expect(mockedHash).toBeCalledWith(testInput, expect.anything(), expect.anything());
+            bcrypt.hash.mockImplementationOnce((input, salt, cb) => {
+                cb(hashError);
+            });
+
+            it('reports an error', () => {
+                expect.hasAssertions();
+
+                return expect(hasher.createBcryptHash('aaa', 1)).rejects.toContain(hashError);
+            });
+        });
     });
 });

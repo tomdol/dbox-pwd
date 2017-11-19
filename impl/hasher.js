@@ -11,7 +11,7 @@ module.exports = {
                 } else {
                     bcrypt.hash(input, salt, function(bcryptError, bcryptHash) {
                         if(bcryptError) {
-                            reject('Coult not create a hash. ', bcryptError.toString());
+                            reject('Coult not create a hash. ' + bcryptError.toString());
                         } else {
                             resolve(bcryptHash);
                         }
