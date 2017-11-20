@@ -1,9 +1,8 @@
-'use strict'
+'use strict';
 
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const validators = require('impl/validators');
-const hasher = require('impl/hasher');
+const validators = require('./impl/validators');
+const hasher = require('./impl/hasher');
+const scrambler = require('./impl/scrambler');
 
 const DEFAULT_CIPHER = 'aes256';
 
@@ -17,7 +16,7 @@ module.exports = {
      * @param  {[string]} cipherType   One of cipher types available in nodejs's crypto module. By default aes256 is used. Call crypto.getCiphers() to check available ciphers.
      * @return {[Promise]}             On success the returned promise resolves with the hashed and encrypted input.
      */
-    encrypt: (input, password, bcryptRounds, cipherType) => {
+    encrypt: (input, password, bcryptRounds, cipherType = DEFAULT_CIPHER) => {
         return new Promise(function(resolve, reject) {
             try {
                 // throws if validation fails, does nothing on success
@@ -25,11 +24,9 @@ module.exports = {
 
                 hasher.createBcryptHash(input, bcryptRounds)
                     .then(hash => {
-                        const cipher = crypto.createCipher(cipherType || DEFAULT_CIPHER, password);
-                        const enc1 = cipher.update(hash, 'utf8', 'hex');
-                        const enc2 = cipher.final('hex');
+                        const encryptedHash = scrambler.encrypt(hash, password, cipherType);
 
-                        resolve(enc1 + enc2);
+                        resolve(encryptedHash);
                     })
                     .catch(reject);
             } catch(err) {
@@ -53,22 +50,11 @@ module.exports = {
                 // throws if validation fails, does nothing on success
                 validators.validateDecryptionParams(input, encryptedData, password, cipherType);
 
-                const decipher = crypto.createDecipher(cipherType || DEFAULT_CIPHER, password);
-                const dec1 = decipher.update(encryptedData, 'hex', 'utf8');
-                const dec2 = decipher.final('utf8');
+                const decryptedHash = scrambler.decrypt(encryptedData, password, cipherType || DEFAULT_CIPHER);
 
-                const decrypted = dec1 + dec2;
-
-                bcrypt.compare(input, decrypted, function(bcryptError, result) {
-                    if(bcryptError) {
-                        throw bcryptError;
-                    } else {
-                        resolve(result);
-                    }
-                });
-
+                return hasher.compareInputWithHash(input, decryptedHash);
             } catch(err) {
-                return null;
+                reject(error);
             }
         });
     }
