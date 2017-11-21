@@ -20,10 +20,18 @@ const decrypt = (data, password, cipherType) => {
 
 module.exports = {
     encrypt: (input, password, cipherType) => {
-        return Promise.resolve(encrypt(input, password, cipherType));
+        try {
+            return Promise.resolve(encrypt(input, password, cipherType));
+        } catch(err) {
+            return Promise.reject(err);
+        }
     },
 
     decrypt: (data, password, cipherType) => {
-        return Promise.resolve(decrypt(data, password, cipherType));
+        try {
+            return Promise.resolve(decrypt(data, password, cipherType));
+        } catch(err) {
+            return Promise.reject(err);
+        }
     }
 };
