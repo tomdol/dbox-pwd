@@ -26,15 +26,13 @@ describe('createBcryptHash', () => {
         });
 
         it('resolves with a hash', () => {
-            expect.hasAssertions();
-
             return expect(hasher.createBcryptHash(testInput, testNumRounds)).resolves.toEqual(fakeHash);
         });
 
         it('calls bcrypt.genSalt with given rounds number', () => {
             hasher.createBcryptHash(testInput, testNumRounds);
 
-            expect(bcrypt.genSalt).toBeCalledWith(testNumRounds, expect.anything());
+            return expect(bcrypt.genSalt).toBeCalledWith(testNumRounds, expect.anything());
         });
 
         it('calls bcrypt.hash with given input and generated salt', () => {
@@ -65,8 +63,6 @@ describe('createBcryptHash', () => {
             });
 
             it('reports an error', () => {
-                expect.hasAssertions();
-
                 return expect(hasher.createBcryptHash('aaa', 1)).rejects.toContain(genSaltError);
             });
         });
@@ -83,10 +79,37 @@ describe('createBcryptHash', () => {
             });
 
             it('reports an error', () => {
-                expect.hasAssertions();
-
                 return expect(hasher.createBcryptHash('aaa', 1)).rejects.toContain(hashError);
             });
         });
+    });
+});
+
+describe('compareInputWithHash', () => {
+    jest.resetModules();
+
+    const hasher = require('./hasher');
+    const bcrypt = require('bcrypt');
+
+    jest.mock('bcrypt', () => {
+        return {
+            compare: jest.fn()
+        }
+    });
+
+    it('rejects when hashes dont match', () => {
+        bcrypt.compare.mockImplementationOnce((data, hash, cb) => {
+            return Promise.reject('fail');
+        });
+
+        return expect(hasher.compareInputWithHash('input', 'hash')).rejects.toEqual('fail');
+    });
+
+    it('resolves when hashes match', () => {
+        bcrypt.compare.mockImplementationOnce((data, hash, cb) => {
+            return Promise.resolve(true);
+        });
+
+        return expect(hasher.compareInputWithHash('hash', 'hash')).resolves.toBeTruthy();
     });
 });
