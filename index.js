@@ -17,45 +17,27 @@ module.exports = {
      * @return {[Promise]}             On success the returned promise resolves with the hashed and encrypted input.
      */
     encrypt: (input, password, bcryptRounds, cipherType = DEFAULT_CIPHER) => {
-        return new Promise(function(resolve, reject) {
-            try {
-                // throws if validation fails, does nothing on success
-                validators.validateEncryptionParams(input, password, cipherType);
+        const validateParams = () => validators.validateEncryptionParams(input, password, cipherType);
+        const createHash = () => hasher.createBcryptHash(input, bcryptRounds);
+        const encryptHash = (hash) => scrambler.encrypt(hash, password, cipherType);
 
-                hasher.createBcryptHash(input, bcryptRounds)
-                    .then(hash => {
-                        const encryptedHash = scrambler.encrypt(hash, password, cipherType);
-
-                        resolve(encryptedHash);
-                    })
-                    .catch(reject);
-            } catch(err) {
-                reject(err);
-            }
-        });
+        return validateParams().then(createHash).then(encryptHash);
     },
 
     /**
-     * The function decrypts encryptedData using the provided password. Decrypted data is then compared with input to see if the hashes match.
+     * The function decrypts encryptedHash using the provided password. Decrypted data is then compared with input to see if the hashes match.
 
      * @param  {[string]} input         Input data to compare with decrypted hash.
-     * @param  {[string]} encryptedData Hash encrypted with password and cipherType.
-     * @param  {[string]} password      Password used to decrypt the encryptedData.
-     * @param  {[string]} cipherType    Cipher used to decrypt the encryptedData. It needs to match the ciperType that was used to encrypt data.
-     * @return {[Promise]}              Promise object which, on success, is resolved with a boolean value indicating that the input and encryptedData match(or not).
+     * @param  {[string]} encryptedHash Hash encrypted with password and cipherType.
+     * @param  {[string]} password      Password used to decrypt the encryptedHash.
+     * @param  {[string]} cipherType    Cipher used to decrypt the encryptedHash. It needs to match the ciperType that was used to encrypt data.
+     * @return {[Promise]}              Promise object which, on success, is resolved with a boolean value indicating that the input and encryptedHash match(or not).
      */
-    compare: (input, encryptedData, password, cipherType) => {
-        return new Promise(function(resolve, reject) {
-            try {
-                // throws if validation fails, does nothing on success
-                validators.validateDecryptionParams(input, encryptedData, password, cipherType);
+    compare: (input, encryptedHash, password, cipherType = DEFAULT_CIPHER) => {
+        const validateParams = () => validators.validateDecryptionParams(input, encryptedHash, password, cipherType);
+        const decryptHash = () => scrambler.decrypt(encryptedHash, password, cipherType);
+        const compareInputWithHash = (hash) => hasher.compareInputWithHash(input, hash);
 
-                const decryptedHash = scrambler.decrypt(encryptedData, password, cipherType || DEFAULT_CIPHER);
-
-                return hasher.compareInputWithHash(input, decryptedHash);
-            } catch(err) {
-                reject(error);
-            }
-        });
+        return validateParams().then(decryptHash).then(compareInputWithHash);
     }
 };
