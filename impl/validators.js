@@ -12,20 +12,36 @@ const isNonEmptyString = (value, paramName) => {
     }
 };
 
+const cipherTypeAvailable = (cipherType) => {
+    if (crypto.getCiphers().indexOf(cipherType) === -1) {
+        throw new Error('The provided cipherType is not available in your version of node.js');
+    }
+};
+
 module.exports = {
     validateEncryptionParams: (input, password, cipherType) => {
-        isNonEmptyString(input, 'input data');
-        isNonEmptyString(password, 'password');
-        isNonEmptyString(cipherType, 'cipher type');
+        try {
+            isNonEmptyString(input, 'input data');
+            isNonEmptyString(password, 'password');
+            isNonEmptyString(cipherType, 'cipher type');
 
-        if (crypto.getCiphers().indexOf(cipherType) === -1) {
-            throw new Error('The provided cipherType is not available in your version of node.js');
+            cipherTypeAvailable(cipherType);
+
+            return Promise.resolve();
+        } catch(err) {
+            return Promise.reject(err);
         }
     },
 
     validateDecryptionParams: (input, encryptedData, password, cipherType) => {
-        module.exports.validateEncryptionParams(input, password, cipherType);
+        try {
+            module.exports.validateEncryptionParams(input, password, cipherType);
 
-        isNonEmptyString(encryptedData, 'encrypted data');
-    }
+            isNonEmptyString(encryptedData, 'encrypted data');
+
+            return Promise.resolve();
+        } catch(err) {
+            return Promise.reject(err);
+        }
+    },
 }
