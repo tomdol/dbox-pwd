@@ -11,35 +11,54 @@ describe('Public API test:', () => {
     const dboxpwd = require('../index');
 
     const testInput = 'some input';
-    const encryptedHash = 'some encrypted data';
-    const testPassword = 'sag34,.,23r';
+    const testHash = 'some fake hash';
+    const encryptedHash = 'some encrypted hash';
+    const testPassword = 'some test password';
     const testErr = 'some error';
 
     describe('encrypt()', () => {
-        validators.validateEncryptionParams.mockImplementation(() => Promise.resolve());
-        hasher.createBcryptHash.mockImplementation((input, bcryptRounds) => input);
-        scrambler.encrypt.mockImplementation((input, password, cipherType) => input);
+        validators.validateEncryptionParams.mockReturnValue(Promise.resolve());
+        hasher.createBcryptHash.mockReturnValue(Promise.resolve(testHash));
+        scrambler.encrypt.mockReturnValue(Promise.resolve(encryptedHash));
+
+        beforeEach(() => {
+            validators.validateEncryptionParams.mockClear();
+            hasher.createBcryptHash.mockClear();
+            scrambler.encrypt.mockClear();
+        });
 
         it('resolves with a string for correct params', () => {
-            return expect(dboxpwd.encrypt(testInput, testPassword, 10)).resolves.toEqual(testInput);
+            return expect(dboxpwd.encrypt(testInput, testPassword, 10)).resolves.toEqual(encryptedHash);
         });
 
         it('rejects when validator rejects', () => {
-            validators.validateEncryptionParams.mockImplementationOnce(() => Promise.reject(testErr));
+            validators.validateEncryptionParams.mockReturnValueOnce(Promise.reject(testErr));
 
             return expect(dboxpwd.encrypt(testInput, null, 5)).rejects.toEqual(testErr);
         });
 
         it('rejects when bcrypt hash fails', () => {
-             hasher.createBcryptHash.mockImplementationOnce(() => Promise.reject(testErr));
+            hasher.createBcryptHash.mockReturnValueOnce(Promise.reject(testErr));
 
-             return expect(dboxpwd.encrypt(testInput, testPassword, 0)).rejects.toEqual(testErr);
+            return expect(dboxpwd.encrypt(testInput, testPassword, 0)).rejects.toEqual(testErr);
         });
 
         it('rejects when encryption fails', () => {
-            scrambler.encrypt.mockImplementationOnce(() => Promise.reject(testErr));
+            scrambler.encrypt.mockReturnValueOnce(Promise.reject(testErr));
 
             return expect(dboxpwd.encrypt(testInput, testPassword, 7, 'unknown')).rejects.toEqual(testErr);
+        });
+
+        it('calls create hash with input and bcrypt rounds', () => {
+            return dboxpwd.encrypt(testInput, testPassword, 120).then(data => {
+                expect(hasher.createBcryptHash).toBeCalledWith(testInput, 120)
+            });
+        });
+
+        it('passes the generated hash and password to encryption function', () => {
+            return dboxpwd.encrypt(testInput, testPassword, 10).then(data => {
+                expect(scrambler.encrypt).toBeCalledWith(testHash, testPassword, expect.anything());
+            });
         });
     });
 
