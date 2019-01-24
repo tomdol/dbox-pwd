@@ -1,6 +1,6 @@
 {
   "name": "dbox-pwd",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Dropbox-like password hasher",
   "main": "lib/index.js",
   "scripts": {
@@ -22,11 +22,11 @@
     "dropbox",
     "aes"
   ],
-  "author": "tomdol <tdolbniak+npmjs@gmail.com> (https://github.com/tomdol)",
+  "author": "tomdol <tdolbniak@gmail.com> (https://github.com/tomdol)",
   "license": "MIT",
   "homepage": "https://github.com/tomdol/dbox-pwd",
   "dependencies": {
-    "bcrypt": "^1.0.3"
+    "bcrypt": "^3.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
